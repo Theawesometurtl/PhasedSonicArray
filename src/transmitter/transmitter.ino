@@ -135,19 +135,19 @@ void loop()
   // Serial.println(data);//write(Data);
   if (transmitting) {
     SUART.print(peakToPeak0);//write(Data);
-    SUART.println();   //Newline code (0x0A) as end mark
-    delay(100);
+    SUART.print("  ");   //Newline code (0x0A) as end mark
+    // delay(100);
     SUART.print(peakToPeak1);//write(Data);
-    SUART.println();   //Newline code (0x0A) as end mark
-    delay(100);
+    SUART.print("  ");   //Newline code (0x0A) as end mark
+    // delay(100);
     SUART.print(peakToPeak2);//write(Data);
-    SUART.println();   //Newline code (0x0A) as end mark
-    delay(100);
+    SUART.print("  ");   //Newline code (0x0A) as end mark
+    // delay(100);
     SUART.print(peakToPeak3);//write(Data);
-    SUART.println();   //Newline code (0x0A) as end mark
-    delay(100);
+    SUART.print("  ");   //Newline code (0x0A) as end mark
+    // delay(100);
     SUART.print(peakToPeak4);//write(Data);
-    SUART.println();   //Newline code (0x0A) as end mark
-    delay(100);
+    // SUART.println();   //Newline code (0x0A) as end mark
+    // delay(100);
   }
 }

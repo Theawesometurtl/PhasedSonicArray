@@ -17,8 +17,9 @@ unsigned int sample4;
 #include<SoftwareSerial.h>  // The library to create a secondary serial monitor on arduino uno.
 
 SoftwareSerial SUART(2, 3); // Sets the input and output ports to Digital Pins 3 and 4. They should be reversed with the pins on the speedometer. 
-char myData[100] = "";       // Creates a blank character array of size 10
+char myData[55] = "";       // Creates a blank character array of size 10
 int i = 0;
+int f = 0;
 int z;
 
 
@@ -114,24 +115,52 @@ void loop()
       }
     }
   }
-  // peakToPeak0 = signalMax0 - signalMin0;  // max - min = peak-peak amplitude
-  // Serial.print(peakToPeak0);
-  // Serial.print("   ");
-  // peakToPeak1 = signalMax1 - signalMin1;  // max - min = peak-peak amplitude
-  // Serial.print(peakToPeak1);
-  // Serial.print("   ");
-  // peakToPeak2 = signalMax2 - signalMin2;  // max - min = peak-peak amplitude
-  // Serial.print(peakToPeak2);
-  // Serial.print("   ");
-  // peakToPeak3 = signalMax3 - signalMin3;  // max - min = peak-peak amplitude
-  // Serial.print(peakToPeak3);
-  // Serial.print("   ");
-  // peakToPeak4 = signalMax4 - signalMin4;  // max - min = peak-peak amplitude
-  // Serial.println(peakToPeak4);
+  peakToPeak0 = signalMax0 - signalMin0;  // max - min = peak-peak amplitude
+  Serial.print(peakToPeak0);
+  Serial.print("  ");
+  peakToPeak1 = signalMax1 - signalMin1;  // max - min = peak-peak amplitude
+  Serial.print(peakToPeak1);
+  Serial.print("  ");
+  peakToPeak2 = signalMax2 - signalMin2;  // max - min = peak-peak amplitude
+  Serial.print(peakToPeak2);
+  Serial.print("  ");
+  peakToPeak3 = signalMax3 - signalMin3;  // max - min = peak-peak amplitude
+  Serial.print(peakToPeak3);
+  Serial.print("  ");
+  peakToPeak4 = signalMax4 - signalMin4;  // max - min = peak-peak amplitude
+  Serial.print(peakToPeak4);
+  Serial.print("  ");
   //double volts = (peakToPeak * 5.0) / 1024;  // convert to volts
   //Serial.println(volts);
 
     // put your main code here, to run repeatedly:
-  if (SUART.available())
-    Serial.write(SUART.read());
+  // char x = SUART.read(); 
+  // if (SUART.available()){
+  //   if (x != 0x0A)  //end mark no found
+  //   {
+  //     myData[i] = x;  //save ASCII coded data in array
+  //     i++;
+  //   }
+  //   else
+  //   {
+  //     z = atoi(myData);  		 // getting the data in integer form
+  //     i = 0;
+  //     Serial.println("end");
+  //     while (f=0,f<=55,f++){
+  //       myData[f]="";
+  //     }
+  //   }
+  // // Serial.println(z);
+  // Serial.println(myData);
+  // Serial.print(SUART.available());
+  
+  SUART.listen(); // listening on Serial One
+
+  // Serial.println("Data from port one:");
+  while (SUART.available() > 0) {
+    char inByte = SUART.read();
+    Serial.write(inByte);
+  }
+  Serial.println();
+  
 }
