@@ -60,7 +60,7 @@ void loop()
   for (i=0; i<5; i++) {
     peakToPeak[i] = signalMax[i] - signalMin[i];  // max - min = peak-peak amplitude
     myString+= String(peakToPeak[i]);
-    myString+= "  ";
+    myString+= " ";
   }
   
   //double volts = (peakToPeak * 5.0) / 1024;  // convert to volts

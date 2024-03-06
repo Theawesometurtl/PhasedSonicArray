@@ -7,6 +7,7 @@ int const pin4 = A4;       // Preamp output pin connected to A0
 
 int const pins[5] = {pin0, pin1, pin2, pin3, pin4};
 unsigned int sample[5] = {0, 0, 0, 0, 0};
+int otherMicrophoneData[5] = {0, 0, 0, 0, 0};
 String myString = "";
 
 
@@ -17,6 +18,21 @@ String myString = "";
 
 SoftwareSerial SUART(2, 3); // Sets the input and output ports to Digital Pins 3 and 4. They should be reversed with the pins on the speedometer. 
 
+int getLength(int someValue)
+{
+  //there's at least one byte:
+  int digits = 1;
+  //continually divide the value by ten, adding one to the digit count for
+  //each time you divide, until you are at 0
+  int getLength(int someValue) {
+  int digits = 1; 
+  int dividend = someValue /10 ;
+  while (dividend > 0) {
+    dividend = dividend /10;
+    digits++; 
+  }
+  return digits;
+}
 
 
 void setup()
@@ -58,7 +74,7 @@ void loop()
   for (int i=0; i<5; i++) {
     peakToPeak[i] = signalMax[i] - signalMin[i];  // max - min = peak-peak amplitude
     myString+= String(peakToPeak[i]);
-    myString+= "  ";
+    myString+= " ";
   }
   
   SUART.listen(); // listening on Serial One
@@ -66,8 +82,11 @@ void loop()
   Serial.print(myString);
   while (SUART.available() > 0) {
     char inByte = SUART.read();
-    Serial.write(inByte);
+    // Serial.write(inByte);
+    Serial.print(String(inByte));
   }
+  
+  otherMicrophoneData[i] = 
   Serial.println();
 }
 
