@@ -13,6 +13,8 @@ unsigned int sample4;
 
 bool transmitting = true;
 
+String myString = "";
+
 
 #define BMP280_ADDRESS 0x76
 #include<SoftwareSerial.h>  // The library to create a secondary serial monitor on arduino uno.
@@ -116,38 +118,27 @@ void loop()
     }
   }
   peakToPeak0 = signalMax0 - signalMin0;  // max - min = peak-peak amplitude
+  peakToPeak1 = signalMax1 - signalMin1;  // max - min = peak-peak amplitude
+  peakToPeak2 = signalMax2 - signalMin2;  // max - min = peak-peak amplitude
+  peakToPeak3 = signalMax3 - signalMin3;  // max - min = peak-peak amplitude
+  peakToPeak4 = signalMax4 - signalMin4;  // max - min = peak-peak amplitude
   Serial.print(peakToPeak0);
   Serial.print("   ");
-  peakToPeak1 = signalMax1 - signalMin1;  // max - min = peak-peak amplitude
   Serial.print(peakToPeak1);
   Serial.print("   ");
-  peakToPeak2 = signalMax2 - signalMin2;  // max - min = peak-peak amplitude
   Serial.print(peakToPeak2);
   Serial.print("   ");
-  peakToPeak3 = signalMax3 - signalMin3;  // max - min = peak-peak amplitude
   Serial.print(peakToPeak3);
   Serial.print("   ");
-  peakToPeak4 = signalMax4 - signalMin4;  // max - min = peak-peak amplitude
   Serial.println(peakToPeak4);
   //double volts = (peakToPeak * 5.0) / 1024;  // convert to volts
   //Serial.println(volts);
 
   // Serial.println(data);//write(Data);
   if (transmitting) {
-    SUART.print(peakToPeak0);//write(Data);
-    SUART.print("  ");   //Newline code (0x0A) as end mark
-    // delay(100);
-    SUART.print(peakToPeak1);//write(Data);
-    SUART.print("  ");   //Newline code (0x0A) as end mark
-    // delay(100);
-    SUART.print(peakToPeak2);//write(Data);
-    SUART.print("  ");   //Newline code (0x0A) as end mark
-    // delay(100);
-    SUART.print(peakToPeak3);//write(Data);
-    SUART.print("  ");   //Newline code (0x0A) as end mark
-    // delay(100);
-    SUART.print(peakToPeak4);//write(Data);
-    // SUART.println();   //Newline code (0x0A) as end mark
-    // delay(100);
+    myString = "";
+    myString+= String(peakToPeak0);
+    myString+= "  ";
+    
   }
 }
