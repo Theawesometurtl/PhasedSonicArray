@@ -4,59 +4,45 @@ int const pin1 = A1;       // Preamp output pin connected to A0
 int const pin2 = A2;       // Preamp output pin connected to A0
 int const pin3 = A3;       // Preamp output pin connected to A0
 int const pin4 = A4;       // Preamp output pin connected to A0
+int const pin5 = A5;
 
-int const pins[5] = {pin0, pin1, pin2, pin3, pin4};
-unsigned int sample[5] = {0, 0, 0, 0, 0};
-int otherMicrophoneData[5] = {0, 0, 0, 0, 0};
+int const PIN_AMOUNT = 6;
+
+int const pins[PIN_AMOUNT] = {pin0, pin1, pin2, pin3, pin4, pin5};
+String const pinAngle[PIN_AMOUNT] = {"-3 Degrees", "-2 Degrees", "-1 Degrees", "1 Degrees", "2 Degrees", "3 Degrees"};
+unsigned int sample[PIN_AMOUNT] = {0, 0, 0, 0, 0, 0};
 String myString = "";
-
 
 
 #include <SD.h>
 #define BMP280_ADDRESS 0x76
-#include<SoftwareSerial.h>  // The library to create a secondary serial monitor on arduino uno.
 
-SoftwareSerial SUART(2, 3); // Sets the input and output ports to Digital Pins 3 and 4. They should be reversed with the pins on the speedometer. 
-
-int getLength(int someValue)
-{
-  //there's at least one byte:
-  int digits = 1;
-  //continually divide the value by ten, adding one to the digit count for
-  //each time you divide, until you are at 0
-  int getLength(int someValue) {
-  int digits = 1; 
-  int dividend = someValue /10 ;
-  while (dividend > 0) {
-    dividend = dividend /10;
-    digits++; 
-  }
-  return digits;
+int compare(const void *a, const void *b) {
+    return (*(int *)b - *(int *)a);
 }
-
 
 void setup()
 {
   Serial.begin(9600);
-  SUART.begin(4800);
 }
 
 void loop()
 {
   // collect data for 50 mS and then plot data
   unsigned long startMillis = millis(); // Start of sample window
-  unsigned int peakToPeak[5] = {0, 0, 0, 0, 0};   // peak-to-peak level
+  unsigned int peakToPeak[PIN_AMOUNT] = {0, 0, 0, 0, 0, 0};   // peak-to-peak level
+  unsigned int p[PIN_AMOUNT];   // peak-to-peak level
 
 
-  unsigned int signalMax[5] = {0, 0, 0, 0, 0};
+  unsigned int signalMax[PIN_AMOUNT] = {0, 0, 0, 0, 0, 0};
 
-  unsigned int signalMin[5] = {1024, 1024, 1024, 1024, 1024};
+  unsigned int signalMin[PIN_AMOUNT] = {1024, 1024, 1024, 1024, 1024, 1024};
 
 
   // collect data for 50 mS and then plot data
   while (millis() - startMillis < sampleWindow)
   {
-    for (int i=0; i<5; i++) {
+    for (int i=0; i<PIN_AMOUNT; i++) {
       sample[i] = analogRead(pins[i]);
 
 
@@ -71,22 +57,29 @@ void loop()
   }
 
   myString = "";
-  for (int i=0; i<5; i++) {
+  for (int i=0; i<PIN_AMOUNT; i++) {
     peakToPeak[i] = signalMax[i] - signalMin[i];  // max - min = peak-peak amplitude
     myString+= String(peakToPeak[i]);
     myString+= " ";
+    p[i] = peakToPeak[i];
   }
-  
-  SUART.listen(); // listening on Serial One
+
+
+
 
   Serial.print(myString);
-  while (SUART.available() > 0) {
-    char inByte = SUART.read();
-    // Serial.write(inByte);
-    Serial.print(String(inByte));
+
+  qsort(p, PIN_AMOUNT, sizeof(p[0]), compare);
+
+  if (p[0] != p[1]) {
+    for (int i=0; i<PIN_AMOUNT; i++) {
+      if (p[0] == peakToPeak[i]) {
+        Serial.print("  ");
+        Serial.print(pinAngle[i]);
+      }
+    }
   }
-  
-  otherMicrophoneData[i] = 
+
   Serial.println();
 }
 
