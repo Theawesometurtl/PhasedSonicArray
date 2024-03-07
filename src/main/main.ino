@@ -7,8 +7,12 @@ int const pin4 = A4;       // Preamp output pin connected to A0
 int const pin5 = A5;
 
 int const PIN_AMOUNT = 6;
+int r = 0;
+
+const int NUM_READINGS = 100;
 
 int const pins[PIN_AMOUNT] = {pin0, pin1, pin2, pin3, pin4, pin5};
+int  calibration[PIN_AMOUNT] = {0, 0, 0, 0, 0, 0};
 String const pinAngle[PIN_AMOUNT] = {"-3 Degrees", "-2 Degrees", "-1 Degrees", "1 Degrees", "2 Degrees", "3 Degrees"};
 unsigned int sample[PIN_AMOUNT] = {0, 0, 0, 0, 0, 0};
 String myString = "";
@@ -59,6 +63,9 @@ void loop()
   myString = "";
   for (int i=0; i<PIN_AMOUNT; i++) {
     peakToPeak[i] = signalMax[i] - signalMin[i];  // max - min = peak-peak amplitude
+    if (r >= NUM_READINGS) {
+      peakToPeak[i] -= calibration[i];
+    }
     myString+= String(peakToPeak[i]);
     myString+= " ";
     p[i] = peakToPeak[i];
@@ -74,12 +81,21 @@ void loop()
   if (p[0] != p[1]) {
     for (int i=0; i<PIN_AMOUNT; i++) {
       if (p[0] == peakToPeak[i]) {
-        Serial.print("  ");
+        // Serial.print(" ");
         Serial.print(pinAngle[i]);
       }
     }
   }
 
   Serial.println();
+
+
+  if (r < NUM_READINGS) {
+    r++;
+    for (int i=0; i<PIN_AMOUNT; i++) {
+      calibration[i] += peakToPeak[i] / NUM_READINGS;
+    }
+
+  }
 }
 
