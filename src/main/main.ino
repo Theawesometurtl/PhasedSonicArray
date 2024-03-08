@@ -5,77 +5,47 @@ int const pin2 = A2;       // Preamp output pin connected to A0
 int const pin3 = A3;       // Preamp output pin connected to A0
 int const pin4 = A4;       // Preamp output pin connected to A0
 int const pin5 = A5;
+int const pin6 = A6;
 
-int const PIN_AMOUNT = 6;
+int const PIN_AMOUNT = 7;
+bool RUNNING = true;
 int r = 0;
 
 const int NUM_READINGS = 100;
 
-int const pins[PIN_AMOUNT] = {pin0, pin1, pin2, pin3, pin4, pin5};
-int  calibration[PIN_AMOUNT] = {0, 0, 0, 0, 0, 0};
-String const pinAngle[PIN_AMOUNT] = {"-3 Degrees", "-2 Degrees", "-1 Degrees", "1 Degrees", "2 Degrees", "3 Degrees"};
-unsigned int sample[PIN_AMOUNT] = {0, 0, 0, 0, 0, 0};
+int const pins[PIN_AMOUNT] = {pin0, pin1, pin2, pin3, pin4, pin5, pin6};
+int p[PIN_AMOUNT];
+int  calibration[PIN_AMOUNT] = {0, 0, 0, 0, 0, 0, 0};
+String const pinAngle[PIN_AMOUNT] = {"-3 Degrees", "-2 Degrees", "-1 Degrees", "1 Degrees", "2 Degrees", "3 Degrees", "4 Degrees"};
+unsigned int sample[PIN_AMOUNT];
+unsigned int peakToPeak[PIN_AMOUNT];
+unsigned int signalMax[PIN_AMOUNT] ;
+unsigned int signalMin[PIN_AMOUNT] ;
 String myString = "";
+
 
 
 #include <SD.h>
 #define BMP280_ADDRESS 0x76
+#include<SoftwareSerial.h>  // The library to create a secondary serial monitor on arduino uno.
+
+SoftwareSerial SUART(2, 3); // Sets the input and output ports to Digital Pins 3 and 4. They should be reversed with the pins on the speedometer. 
+
 
 int compare(const void *a, const void *b) {
     return (*(int *)b - *(int *)a);
 }
 
+
 void setup()
 {
   Serial.begin(9600);
+  SUART.begin(4800);
+
 }
 
-void loop()
-{
-  // collect data for 50 mS and then plot data
-  unsigned long startMillis = millis(); // Start of sample window
-  unsigned int peakToPeak[PIN_AMOUNT] = {0, 0, 0, 0, 0, 0};   // peak-to-peak level
-  unsigned int p[PIN_AMOUNT];   // peak-to-peak level
 
-
-  unsigned int signalMax[PIN_AMOUNT] = {0, 0, 0, 0, 0, 0};
-
-  unsigned int signalMin[PIN_AMOUNT] = {1024, 1024, 1024, 1024, 1024, 1024};
-
-
-  // collect data for 50 mS and then plot data
-  while (millis() - startMillis < sampleWindow)
-  {
-    for (int i=0; i<PIN_AMOUNT; i++) {
-      sample[i] = analogRead(pins[i]);
-
-
-      if (sample[i] < 1024) {
-        if (sample[i] > signalMax[i]) {
-          signalMax[i] = sample[i];
-        } else if (sample[i] < signalMin[i]) {
-          signalMin[i] = sample[i];
-        }
-      }
-    }
-  }
-
-  myString = "";
-  for (int i=0; i<PIN_AMOUNT; i++) {
-    peakToPeak[i] = signalMax[i] - signalMin[i];  // max - min = peak-peak amplitude
-    if (r >= NUM_READINGS) {
-      peakToPeak[i] -= calibration[i];
-    }
-    myString+= String(peakToPeak[i]);
-    myString+= " ";
-    p[i] = peakToPeak[i];
-  }
-
-
-
-
-  Serial.print(myString);
-
+void findLargest() {
   qsort(p, PIN_AMOUNT, sizeof(p[0]), compare);
 
   if (p[0] != p[1]) {
@@ -86,16 +56,86 @@ void loop()
       }
     }
   }
+}
 
+int calculateVolume(int i) {
+      sample[i] = analogRead(pins[i]);
+      if (sample[i] < 1024) {
+        if (sample[i] > signalMax[i]) {
+          signalMax[i] = sample[i];
+        } else if (sample[i] < signalMin[i]) {
+          signalMin[i] = sample[i];
+        }
+      }
+    
+  
+  myString = "";
+  for (int i=0; i<PIN_AMOUNT; i++) {
+    peakToPeak[i] = signalMax[i] - signalMin[i];  // max - min = peak-peak amplitude
+    if (r >= NUM_READINGS) {
+      peakToPeak[i] -= calibration[i];
+    }
+    myString+= String(peakToPeak[i]);
+    myString+= " ";
+    p[i] = peakToPeak[i];
+  }
+  return peakToPeak;
+}
+
+
+
+void calibrateSensors() {
+  r++;
+  for (int i=0; i<PIN_AMOUNT; i++) {
+    calibration[i] += peakToPeak[i] / NUM_READINGS;
+  }
+}
+
+void loop()
+{
+  if (RUNNING) {
+  // collect data for 50 mS and then plot data
+  unsigned long startMillis = millis(); // Start of sample window
+
+  for (int i=0; i<PIN_AMOUNT; i++) {
+    peakToPeak[i] = 0;   // peak-to-peak level
+    signalMax[i] = 0;
+    signalMin[i] = 1024;
+  }
+  // collect data for 50 mS and then plot data
+  while (millis() - startMillis < sampleWindow)
+  {
+    for (int i=0; i<PIN_AMOUNT; i++) {
+      peakToPeak[i] = calculateVolume(i);
+    }
+  }
+  findLargest();
+
+
+  Serial.print(myString);
   Serial.println();
 
 
   if (r < NUM_READINGS) {
-    r++;
-    for (int i=0; i<PIN_AMOUNT; i++) {
-      calibration[i] += peakToPeak[i] / NUM_READINGS;
-    }
-
+    calibrateSensors();
   }
-}
+  }
+  SUART.listen(); // listening on Serial One
+  
+  Serial.print(myString);
+  while (SUART.available() > 0) {
+    char inByte = SUART.read();
+    // Serial.write(inByte);
+    Serial.print(String(inByte));
+    if (String(inByte) == "Start") {
+      RUNNING = true;
+    }
+    if (String(inByte) == "End") {
+      RUNNING = false;
+    }
+    if (String(inByte) == "Calibrate") {
+      r = 0;
+    }
+  }
 
+}
