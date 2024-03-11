@@ -1,4 +1,4 @@
-const int sampleWindow = 50;  // Sample window width in mS (50 mS = 20Hz)
+onst int sampleWindow = 50;  // Sample window width in mS (50 mS = 20Hz)
 int const pin0 = A0;       // Preamp output pin connected to A0
 int const pin1 = A1;       // Preamp output pin connected to A0
 int const pin2 = A2;       // Preamp output pin connected to A0
@@ -11,17 +11,24 @@ int const PIN_AMOUNT = 7;
 bool RUNNING = true;
 int r = 0;
 
+int const averageReadingDuration = 10;
+int average = 0;
+int a = 0;
+int a2 = 0;
+
 const int NUM_READINGS = 100;
 
 int const pins[PIN_AMOUNT] = {pin0, pin1, pin2, pin3, pin4, pin5, pin6};
-int p[PIN_AMOUNT];
-int  calibration[PIN_AMOUNT] = {0, 0, 0, 0, 0, 0, 0};
-String const pinAngle[PIN_AMOUNT] = {"-3 Degrees", "-2 Degrees", "-1 Degrees", "1 Degrees", "2 Degrees", "3 Degrees", "4 Degrees"};
+unsigned int p[PIN_AMOUNT];
+unsigned int  calibration[PIN_AMOUNT] = {0, 0, 0, 0, 0, 0, 0};
+String const pinAngle[PIN_AMOUNT] = {"0 Degrees", "30 Degrees", "60 Degrees", "90 Degrees", "120 Degrees", "150 Degrees", "180 Degrees"};
 unsigned int sample[PIN_AMOUNT];
 unsigned int peakToPeak[PIN_AMOUNT];
 unsigned int signalMax[PIN_AMOUNT] ;
 unsigned int signalMin[PIN_AMOUNT] ;
 String myString = "";
+
+
 
 
 
@@ -45,17 +52,19 @@ void setup()
 }
 
 
-void findLargest() {
+int findLargest() {
   qsort(p, PIN_AMOUNT, sizeof(p[0]), compare);
 
   if (p[0] != p[1]) {
     for (int i=0; i<PIN_AMOUNT; i++) {
       if (p[0] == peakToPeak[i]) {
         // Serial.print(" ");
-        Serial.print(pinAngle[i]);
+        // Serial.print(pinAngle[i]);
+        return i;
       }
     }
   }
+  // return 0;
 }
 
 int calculateVolume(int i) {
@@ -109,10 +118,17 @@ void loop()
       peakToPeak[i] = calculateVolume(i);
     }
   }
-  findLargest();
 
 
   Serial.print(myString);
+  a += findLargest();
+  Serial.print(pinAngle[average]);
+  // Serial.print(" ");
+  // Serial.print(average);
+  // Serial.print(" ");
+  // Serial.print(a);
+  // Serial.print(" ");
+  // Serial.print(a2);
   Serial.println();
 
 
@@ -122,7 +138,6 @@ void loop()
   }
   SUART.listen(); // listening on Serial One
   
-  Serial.print(myString);
   while (SUART.available() > 0) {
     char inByte = SUART.read();
     // Serial.write(inByte);
@@ -138,4 +153,11 @@ void loop()
     }
   }
 
+  a2++;
+  if (a2 > averageReadingDuration) {
+    average = a /averageReadingDuration;
+    average = round(average);
+    a=0;
+    a2 =0;
+  }
 }
